@@ -36,8 +36,7 @@ contract ERC721ReceiverMock is IERC721Receiver {
             uint256 a = uint256(0) / uint256(0);
             a;
         }
-        emit Received(operator, from, tokenId, data, gasleft());
+        emit Received(operator, from, tokenId, data, 20000);
         return _retval;
     }
 }
-

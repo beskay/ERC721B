@@ -256,7 +256,7 @@ abstract contract ERC721B {
      * and stop existing when they are burned (`_burn`).
      */
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return tokenId < currentIndex && _owners[tokenId] != address(0x000000000000000000000000000000000000dEaD);
+        return tokenId < currentIndex;
     }
 
     /**
