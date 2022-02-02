@@ -9,6 +9,7 @@ import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
  *
  * Assumes serials are sequentially minted starting at 0 (e.g. 0, 1, 2, 3..).
  * Does not support burning tokens to address(0), instead sends them to 0x0000...dEaD.
+ * Does not support variable supply, max supply has to be set before deploying the contract
  *
  * @author beskay0x
  * Credits: solmate, chiru-labs, nftchance, transmissions11, squeebo_nft and others
@@ -39,6 +40,7 @@ abstract contract ERC721B {
                           ERC721 STORAGE
     //////////////////////////////////////////////////////////////*/
 
+    // set MAX_SUPPLY
     uint256 public constant MAX_SUPPLY = 5000;
     uint256 internal currentIndex;
 
@@ -73,13 +75,49 @@ abstract contract ERC721B {
     }
 
     /*///////////////////////////////////////////////////////////////
+                       ERC721ENUMERABLE LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev See {IERC721Enumerable-totalSupply}.
+     */
+    function totalSupply() public view returns (uint256) {
+        return currentIndex;
+    }
+
+    /**
+     * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
+     */
+    function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual returns (uint256 tokenId) {
+        require(index < balanceOf(owner), 'ERC721Enumerable: owner index out of bounds');
+
+        uint256 count;
+        for (uint256 i; i < currentIndex; i++) {
+            if (owner == ownerOf(i)) {
+                if (count == index) return i;
+                else count++;
+            }
+        }
+
+        revert('ERC721Enumerable: owner index out of bounds');
+    }
+
+    /**
+     * @dev See {IERC721Enumerable-tokenByIndex}.
+     */
+    function tokenByIndex(uint256 index) public view virtual returns (uint256) {
+        require(index < currentIndex, 'ERC721Enumerable: global index out of bounds');
+        return index;
+    }
+
+    /*///////////////////////////////////////////////////////////////
                               ERC721 LOGIC
     //////////////////////////////////////////////////////////////*/
 
     /**
      * @dev Iterates through _owners array, returns balance of address
-     * It is discouraged to call this function on chain from another smart contract
-     * as it can become quite expensive -- only call this function off chain.
+     * It is not recommended to call this function from another smart contract
+     * as it can become quite expensive -- call this function off chain instead.
      */
     function balanceOf(address owner) public view virtual returns (uint256) {
         require(owner != address(0), 'ERC721: balance query for the zero address');
@@ -97,6 +135,8 @@ abstract contract ERC721B {
 
     /**
      * @dev See {IERC721-ownerOf}.
+     * Gas spent here starts off proportional to the maximum mint batch size.
+     * It gradually moves to O(1) as tokens get transferred around in the collection over time.
      */
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
         require(_exists(tokenId), 'ERC721: operator query for nonexistent token');
@@ -168,10 +208,11 @@ abstract contract ERC721B {
             'ERC721: transfer caller is not owner nor approved'
         );
 
+        // delete token approvals from previous owner
         delete _tokenApprovals[tokenId];
         _owners[tokenId] = to;
 
-        // if token ID below transferred one isnt set, set it to transfer initiator (-> from)
+        // if token ID below transferred one isnt set, set it to previous owner
         if (_owners[tokenId - 1] == address(0)) {
             _owners[tokenId - 1] = from;
         }
@@ -252,42 +293,6 @@ abstract contract ERC721B {
     }
 
     /*///////////////////////////////////////////////////////////////
-                       ERC721Enumerable
-    //////////////////////////////////////////////////////////////*/
-
-    /**
-     * @dev See {IERC721Enumerable-totalSupply}.
-     */
-    function totalSupply() public view returns (uint256) {
-        return currentIndex;
-    }
-
-    /**
-     * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
-     */
-    function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual returns (uint256 tokenId) {
-        require(index < balanceOf(owner), 'ERC721Enumerable: owner index out of bounds');
-
-        uint256 count;
-        for (uint256 i; i < currentIndex; i++) {
-            if (owner == ownerOf(i)) {
-                if (count == index) return i;
-                else count++;
-            }
-        }
-
-        revert('ERC721Enumerable: owner index out of bounds');
-    }
-
-    /**
-     * @dev See {IERC721Enumerable-tokenByIndex}.
-     */
-    function tokenByIndex(uint256 index) public view virtual returns (uint256) {
-        require(index < currentIndex, 'ERC721Enumerable: global index out of bounds');
-        return index;
-    }
-
-    /*///////////////////////////////////////////////////////////////
                        INTERNAL SAFE MINT LOGIC
     //////////////////////////////////////////////////////////////*/
 
@@ -338,7 +343,7 @@ abstract contract ERC721B {
             emit Transfer(address(0), to, _currentIndex + i);
         }
 
-        currentIndex += qty;
+        currentIndex = currentIndex + qty;
     }
 
     function _burn(uint256 tokenId) internal virtual {
