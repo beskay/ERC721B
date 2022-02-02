@@ -335,4 +335,31 @@ describe('ERC721B', function () {
       );
     });
   });
+
+  describe('Gas analysis', async function () {
+    beforeEach(async function () {
+      //mint one token, since first mint is always more expensive
+      await erc721b.mint(receiver.address, 1);
+    });
+
+    it('mint', async function () {
+      for (let i = 1; i < 6; i++) {
+        const mintTx = await erc721b.mint(receiver.address, i);
+        const mintReceipt = await mintTx.wait();
+        const gasUsed = mintReceipt.gasUsed;
+
+        console.log(`Gas used for minting ${i} token(s): ${gasUsed.toString()}`);
+      }
+    });
+
+    it('safeMint', async function () {
+      for (let i = 1; i < 6; i++) {
+        const mintTx = await erc721b['safeMint(address,uint256)'](receiver.address, i);
+        const mintReceipt = await mintTx.wait();
+        const gasUsed = mintReceipt.gasUsed;
+
+        console.log(`Gas used for safe minting ${i} token(s): ${gasUsed.toString()}`);
+      }
+    });
+  });
 });

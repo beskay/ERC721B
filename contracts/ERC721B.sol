@@ -40,7 +40,6 @@ abstract contract ERC721B {
                           ERC721 STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    // set MAX_SUPPLY
     uint256 public constant MAX_SUPPLY = 5000;
     uint256 internal currentIndex;
 
@@ -213,8 +212,11 @@ abstract contract ERC721B {
         _owners[tokenId] = to;
 
         // if token ID below transferred one isnt set, set it to previous owner
-        if (_owners[tokenId - 1] == address(0)) {
-            _owners[tokenId - 1] = from;
+        // if tokenid is zero, skip this
+        if (tokenId > 0) {
+            if (_owners[tokenId - 1] == address(0)) {
+                _owners[tokenId - 1] = from;
+            }
         }
 
         emit Transfer(from, to, tokenId);
@@ -353,9 +355,12 @@ abstract contract ERC721B {
 
         _owners[tokenId] = address(0x000000000000000000000000000000000000dEaD);
 
-        // if token ID below burned one isnt set, set it to owner of this tokenId
-        if (_owners[tokenId - 1] == address(0)) {
-            _owners[tokenId - 1] = owner;
+        // if token ID below transferred one isnt set, set it to previous owner
+        // if tokenid is zero, skip this
+        if (tokenId > 0) {
+            if (_owners[tokenId - 1] == address(0)) {
+                _owners[tokenId - 1] = owner;
+            }
         }
 
         emit Transfer(owner, address(0x000000000000000000000000000000000000dEaD), tokenId);
