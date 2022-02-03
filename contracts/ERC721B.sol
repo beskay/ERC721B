@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 
 /**
  * Updated, minimalist and gas efficient version of OpenZeppelins ERC721 contract.
- * Includes the Metadata and Enumerable extension.
+ * Includes the Metadata and  Enumerable extension.
  *
  * Assumes serials are sequentially minted starting at 0 (e.g. 0, 1, 2, 3..).
  * Does not support burning tokens
@@ -83,6 +83,7 @@ abstract contract ERC721B {
 
     /**
      * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
+     * Dont call this function on chain from another smart contract, since it can become quite expensive
      */
     function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual returns (uint256 tokenId) {
         require(index < balanceOf(owner), 'ERC721Enumerable: owner index out of bounds');
@@ -209,7 +210,7 @@ abstract contract ERC721B {
         _owners[tokenId] = to;
 
         // if token ID below transferred one isnt set, set it to previous owner
-        // if tokenid is zero, skip this
+        // if tokenid is zero, skip this to prevent underflow
         if (tokenId > 0) {
             if (_owners[tokenId - 1] == address(0)) {
                 _owners[tokenId - 1] = from;
