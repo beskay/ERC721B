@@ -183,17 +183,6 @@ describe('ERC721B', function () {
     });
   });
 
-  describe('Burn', function () {
-    beforeEach(async function () {
-      await erc721b.connect(addr1).mint(addr1.address, 5);
-      await erc721b.burn(3);
-    });
-
-    it('verifies correct balanceOf', async function () {
-      expect(await erc721b.balanceOf(addr1.address)).to.equal('4');
-    });
-  });
-
   describe('Transfers', function () {
     const testSuccessfulTransfer = function (transferFn) {
       const tokenId = 2;

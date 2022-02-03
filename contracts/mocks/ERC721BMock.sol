@@ -47,8 +47,4 @@ contract ERC721BMock is ERC721B, Ownable {
     function mint(address to, uint256 quantity) public {
         _mint(to, quantity);
     }
-
-    function burn(uint256 tokenId) public {
-        _burn(tokenId);
-    }
 }

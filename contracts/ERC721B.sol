@@ -9,11 +9,10 @@ import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
  * Includes the Metadata and Enumerable extension.
  *
  * Assumes serials are sequentially minted starting at 0 (e.g. 0, 1, 2, 3..).
- * Does not support burning tokens to address(0), instead sends them to 0x0000...dEaD.
- * Does not support variable supply, max supply has to be set before deploying the contract
+ * Does not support burning tokens
  *
  * @author beskay0x
- * Credits: solmate, chiru-labs, nftchance, transmissions11, squeebo_nft and others
+ * Credits: chiru-labs, solmate, transmissions11, nftchance, squeebo_nft and others
  */
 
 abstract contract ERC721B {
@@ -41,11 +40,8 @@ abstract contract ERC721B {
                           ERC721 STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    uint256 public constant MAX_SUPPLY = 5000;
-    uint256 internal currentIndex;
-
     // Array which maps token ID to address (index is tokenID)
-    address[MAX_SUPPLY] internal _owners;
+    address[] internal _owners;
 
     // Mapping from token ID to approved address
     mapping(uint256 => address) private _tokenApprovals;
@@ -82,7 +78,7 @@ abstract contract ERC721B {
      * @dev See {IERC721Enumerable-totalSupply}.
      */
     function totalSupply() public view returns (uint256) {
-        return currentIndex;
+        return _owners.length;
     }
 
     /**
@@ -92,7 +88,7 @@ abstract contract ERC721B {
         require(index < balanceOf(owner), 'ERC721Enumerable: owner index out of bounds');
 
         uint256 count;
-        for (uint256 i; i < currentIndex; i++) {
+        for (uint256 i; i < _owners.length; i++) {
             if (owner == ownerOf(i)) {
                 if (count == index) return i;
                 else count++;
@@ -106,7 +102,7 @@ abstract contract ERC721B {
      * @dev See {IERC721Enumerable-tokenByIndex}.
      */
     function tokenByIndex(uint256 index) public view virtual returns (uint256) {
-        require(index < currentIndex, 'ERC721Enumerable: global index out of bounds');
+        require(index < _owners.length, 'ERC721Enumerable: global index out of bounds');
         return index;
     }
 
@@ -123,7 +119,7 @@ abstract contract ERC721B {
         require(owner != address(0), 'ERC721: balance query for the zero address');
 
         uint256 count;
-        for (uint256 i = 0; i < currentIndex; i++) {
+        for (uint256 i = 0; i < _owners.length; i++) {
             if (owner == ownerOf(i)) {
                 unchecked {
                     count++;
@@ -252,14 +248,9 @@ abstract contract ERC721B {
 
     /**
      * @dev Returns whether `tokenId` exists.
-     *
-     * Tokens can be managed by their owner or approved accounts via {approve} or {setApprovalForAll}.
-     *
-     * Tokens start existing when they are minted (`_mint`),
-     * and stop existing when they are burned (`_burn`).
      */
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return tokenId < currentIndex;
+        return tokenId < _owners.length;
     }
 
     /**
@@ -296,24 +287,22 @@ abstract contract ERC721B {
     }
 
     /*///////////////////////////////////////////////////////////////
-                       INTERNAL SAFE MINT LOGIC
+                       INTERNAL MINT LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    /**
+     * @dev check if contract confirms token transfer, if not - reverts
+     * unlike the standard ERC721 implementation this is only called once per mint,
+     * no matter how many tokens get minted, since it is useless to check this
+     * requirement several times -- if the contract confirms one token,
+     * it will confirm all additional ones too.
+     * This saves us around 5k gas per additional mint
+     */
     function _safeMint(address to, uint256 qty) internal virtual {
-        uint256 _currentIndex = currentIndex;
-
         _mint(to, qty);
 
-        /**
-         * @dev check if contract confirms token transfer, if not - reverts
-         * unlike the standard ERC721 implementation this is only called once per mint,
-         * no matter how many tokens get minted, since it is useless to check this
-         * requirement several times -- if the contract confirms one token,
-         * it will confirm all additional ones too.
-         * This saves us around 5k gas per additional mint
-         */
         require(
-            _checkOnERC721Received(address(0), to, _currentIndex + (qty - 1), ''),
+            _checkOnERC721Received(address(0), to, _owners.length - 1, ''),
             'ERC721: transfer to non ERC721Receiver implementer'
         );
     }
@@ -323,51 +312,27 @@ abstract contract ERC721B {
         uint256 qty,
         bytes memory data
     ) internal virtual {
-        uint256 _currentIndex = currentIndex;
-
         _mint(to, qty);
 
         require(
-            _checkOnERC721Received(address(0), to, _currentIndex + (qty - 1), data),
+            _checkOnERC721Received(address(0), to, _owners.length - 1, data),
             'ERC721: transfer to non ERC721Receiver implementer'
         );
     }
-
-    /*///////////////////////////////////////////////////////////////
-                       INTERNAL MINT/BURN LOGIC
-    //////////////////////////////////////////////////////////////*/
 
     function _mint(address to, uint256 qty) internal virtual {
         require(to != address(0), 'ERC721: mint to the zero address');
         require(qty > 0, 'ERC721: quantity must be greater than 0');
 
-        uint256 _currentIndex = currentIndex;
+        uint256 _currentIndex = _owners.length;
 
-        // (qty - 1) because array index starts at zero
-        _owners[_currentIndex + (qty - 1)] = to;
-
-        for (uint256 i = 0; i < qty; i++) {
+        for (uint256 i = 0; i < qty - 1; i++) {
+            _owners.push();
             emit Transfer(address(0), to, _currentIndex + i);
         }
 
-        currentIndex = currentIndex + qty;
-    }
-
-    function _burn(uint256 tokenId) internal virtual {
-        address owner = ownerOf(tokenId);
-
-        delete _tokenApprovals[tokenId];
-
-        _owners[tokenId] = address(0x000000000000000000000000000000000000dEaD);
-
-        // if token ID below transferred one isnt set, set it to previous owner
-        // if tokenid is zero, skip this
-        if (tokenId > 0) {
-            if (_owners[tokenId - 1] == address(0)) {
-                _owners[tokenId - 1] = owner;
-            }
-        }
-
-        emit Transfer(owner, address(0x000000000000000000000000000000000000dEaD), tokenId);
+        // set last index to receiver
+        _owners.push(to);
+        emit Transfer(address(0), to, _currentIndex + (qty - 1));
     }
 }
