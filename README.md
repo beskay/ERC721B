@@ -23,21 +23,21 @@ I included the optimizations from Azukis ERC721A contract, namely updating the o
 This is actually the "secret ingredient", the reason why this implementation is even more gas efficient than ERC721A. Instead of using mappings to store the owner data, we use an array. So
 
 ```
-    struct AddressData {
-        uint128 balance;
-        uint128 numberMinted;
-    }
-    // Mapping owner address to address data
-    mapping(address => AddressData) private _addressData;
+struct AddressData {
+    uint128 balance;
+    uint128 numberMinted;
+}
+// Mapping owner address to address data
+mapping(address => AddressData) private _addressData;
 
-    uint256 internal currentIndex = 0;
+uint256 internal currentIndex = 0;
 ```
 
 Becomes
 
 ```
-    // Array which maps token ID to address (index is tokenID)
-    address[] internal _owners;
+// Array which maps token ID to address (index is tokenID)
+address[] internal _owners;
 ```
 
 The balance variable is substituded with a **_balanceOf()_** function call, numberMinted is removed, **_currentIndex_** can be replaced with **_\_owners.length_**. This saves us a few storage writes -- the reason why minting is 17k gas cheaper.
@@ -45,15 +45,15 @@ The balance variable is substituded with a **_balanceOf()_** function call, numb
 Following storage writes in the mint function of ERC721A
 
 ```
-        _addressData[to].balance += uint128(quantity);
-        _addressData[to].numberMinted += uint128(quantity);
+_addressData[to].balance += uint128(quantity);
+_addressData[to].numberMinted += uint128(quantity);
 
-        _ownerships[startTokenId].addr = to;
-        _ownerships[startTokenId].startTimestamp = uint64(block.timestamp);
+_ownerships[startTokenId].addr = to;
+_ownerships[startTokenId].startTimestamp = uint64(block.timestamp);
 
-        ...
+...
 
-        currentIndex = updatedIndex;
+currentIndex = updatedIndex;
 ```
 
 are substituded with
@@ -61,6 +61,13 @@ are substituded with
 ```
         _owners.push(to);
 ```
+
+In the image below you can see an example layout of the **_\_owners_** array:
+![owners array](https://i.imgur.com/x1NUoO1.png)
+
+In this example wallet **_0x1234...6789_** minted 3 tokens and wallet **_0x4567...8745_** minted 4 tokens (**_0x9876...1234_** minted an unknown number of tokens since the previous owner isnt shown).
+
+As you can see, an owner is only set for the last minted tokenId, the previous ones keep their default value. Over time (after every token got transferred at least once) all indizes will be set to a specific owner.
 
 ### \_checkOnERC721Received
 
