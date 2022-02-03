@@ -59,10 +59,11 @@ currentIndex = updatedIndex;
 are substituded with
 
 ```
-        _owners.push(to);
+_owners.push(to);
 ```
 
 In the image below you can see an example layout of the **_\_owners_** array:
+
 ![owners array](https://i.imgur.com/x1NUoO1.png)
 
 In this example wallet **_0x1234...6789_** minted 3 tokens and wallet **_0x4567...8745_** minted 4 tokens (**_0x9876...1234_** minted an unknown number of tokens since the previous owner isnt shown).
