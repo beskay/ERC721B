@@ -12,7 +12,7 @@ The table below shows a comparison of gas costs between a standard ERC721Enumera
 
 ### Removed OpenZeppelins Enumerable extension
 
-Out of the box, Open Zeppelin ERC721Enumerable comes with an inordinate amount of transfer processing that simply is not needed for the majority of projects. The method of tracking is moved into view functions, this saves an huge amount of gas when minting or transfering your tokens. For more info on that, I highly recommend reading [this medium article from nftchance](https://medium.com/coinmonks/the-cannibalization-of-nfts-by-openzeppelin-by-insanely-high-gas-prices-cd2c9a7c1e7).
+Out of the box, Open Zeppelin ERC721Enumerable comes with an inordinate amount of transfer processing that simply is not needed for the majority of projects. The method of tracking is moved into view functions, this saves an huge amount of gas when minting or transferring your tokens. For more info on that, I highly recommend reading [this medium article from nftchance](https://medium.com/coinmonks/the-cannibalization-of-nfts-by-openzeppelin-by-insanely-high-gas-prices-cd2c9a7c1e7).
 
 ### Included optimizations from ERC721A
 
@@ -84,7 +84,7 @@ Even if minting multiple tokens at once is cheap, dont set the max batch limit t
 
 ### Dont call balanceOf() and tokenOfOwnerByIndex() on chain
 
-The gas savings by using an **_\_owners array_** instead of a mapping comes at a cost: The **_balanceOf()_** and **_tokenOfOwnerByIndex()_** are highly inefficient. They iterate over the complete array, this means if a collection has 10000 NFTs in total, they will iterate over 10k items.
+The gas savings by using an **_\_owners_** array instead of a mapping comes at a cost: The **_balanceOf()_** and **_tokenOfOwnerByIndex()_** are highly inefficient. They iterate over the complete array, this means if a collection has 10000 NFTs in total, they will iterate over 10k items.
 
 Because of this, calling these functions from another smart contract can become extremely expensive, e.g. calling the **_balanceOf()_** function from a 10k NFT project costs around 22 million (!) gas, 2/3 of the block gas limit.
 
@@ -106,8 +106,7 @@ These contracts were inspired by or directly modified from many sources, primari
 - [solmate](https://github.com/Rari-Capital/solmate)
 - [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts)
 
-A big influence was also this medium article from [@nftchance](https://twitter.com/nftchance):
-https://medium.com/coinmonks/the-cannibalization-of-nfts-by-openzeppelin-by-insanely-high-gas-prices-cd2c9a7c1e7
+A big influence was also [this medium article from nftchance](https://medium.com/coinmonks/the-cannibalization-of-nfts-by-openzeppelin-by-insanely-high-gas-prices-cd2c9a7c1e7)
 
 ## Contact
 
