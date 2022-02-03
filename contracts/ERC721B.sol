@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 
 /**
  * Updated, minimalist and gas efficient version of OpenZeppelins ERC721 contract.
+ * Includes the Metadata and Enumerable extension.
  *
  * Assumes serials are sequentially minted starting at 0 (e.g. 0, 1, 2, 3..).
  * Does not support burning tokens to address(0), instead sends them to 0x0000...dEaD.
@@ -303,12 +304,18 @@ abstract contract ERC721B {
 
         _mint(to, qty);
 
-        for (uint256 i = 0; i < qty; i++) {
-            require(
-                _checkOnERC721Received(address(0), to, _currentIndex + i, ''),
-                'ERC721: transfer to non ERC721Receiver implementer'
-            );
-        }
+        /**
+         * @dev check if contract confirms token transfer, if not - reverts
+         * unlike the standard ERC721 implementation this is only called once per mint,
+         * no matter how many tokens get minted, since it is useless to check this
+         * requirement several times -- if the contract confirms one token,
+         * it will confirm all additional ones too.
+         * This saves us around 5k gas per additional mint
+         */
+        require(
+            _checkOnERC721Received(address(0), to, _currentIndex + (qty - 1), ''),
+            'ERC721: transfer to non ERC721Receiver implementer'
+        );
     }
 
     function _safeMint(
@@ -320,12 +327,10 @@ abstract contract ERC721B {
 
         _mint(to, qty);
 
-        for (uint256 i = 0; i < qty; i++) {
-            require(
-                _checkOnERC721Received(address(0), to, _currentIndex + i, data),
-                'ERC721: transfer to non ERC721Receiver implementer'
-            );
-        }
+        require(
+            _checkOnERC721Received(address(0), to, _currentIndex + (qty - 1), data),
+            'ERC721: transfer to non ERC721Receiver implementer'
+        );
     }
 
     /*///////////////////////////////////////////////////////////////

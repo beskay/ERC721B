@@ -96,15 +96,13 @@ describe('ERC721B', function () {
 
         // iterate over all 5 tokens
         for (let tokenId = 0; tokenId < 5; tokenId++) {
-          // check events
           await expect(mintTx).to.emit(erc721b, 'Transfer').withArgs(ZERO_ADDRESS, receiver.address, tokenId);
-          await expect(mintTx)
-            .to.emit(receiver, 'Received')
-            .withArgs(owner.address, ZERO_ADDRESS, tokenId, '0x', 20000);
 
           // check ownerOf
           expect(await erc721b.ownerOf(tokenId)).to.equal(receiver.address);
         }
+
+        await expect(mintTx).to.emit(receiver, 'Received').withArgs(owner.address, ZERO_ADDRESS, 4, '0x', 20000);
 
         // check balance function
         expect(await erc721b.balanceOf(receiver.address)).to.equal('5');
