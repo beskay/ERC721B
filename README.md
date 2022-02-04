@@ -40,7 +40,7 @@ Becomes
 address[] internal _owners;
 ```
 
-The balance variable is substituded with a **_balanceOf()_** function call, numberMinted is removed, **_currentIndex_** can be replaced with **_\_owners.length_**. This saves us a few storage writes -- the reason why minting is 17k gas cheaper.
+The balance variable is substituded with a **_balanceOf()_** function call, numberMinted is removed, **_currentIndex_** can be replaced with **_\_owners.length_**. This saves us a few storage writes and therefore some gas.
 
 Following storage writes in the mint function of ERC721A
 
@@ -73,6 +73,8 @@ As you can see, an owner is only set for the last minted tokenId, the previous o
 ### \_checkOnERC721Received
 
 Unlike in the standard ERC721 implementation this is only called once per batch mint. Calling this several times per batch mint is a waste of gas, if the contract confirms the receival of one token, it will accept all additional tokens too. This saves us around 5k gas per additional mint, so it adds up quite a bit.
+
+Please note that this is an experimental feature, it could be that there are some contracts out there which use their onERC721Received function for additional logic, like sending the received NFTs to another wallet or something else.
 
 ## How to use
 
