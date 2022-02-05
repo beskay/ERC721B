@@ -90,7 +90,7 @@ If you dont want to support minting to smart contracts, you can use the **_mint_
 
 ### Keep max batch size limit low
 
-Even if minting multiple tokens at once is cheap, dont set the max batch limit too high. The higher the max batch limit, the higher are the gas costs of subsequent transfers -- on average. This is due to the **_ownerOf()_** function, which iterates ower the **_\_owners array_** until it finds a nonzero element, so gas spent here starts off proportional to the maximum mint batch size. It gradually moves to O(1) as tokens get transferred around in the collection over time.
+Even if minting multiple tokens at once is cheap, dont set the max batch limit too high. The higher the max batch limit, the higher are the gas costs of subsequent transfers -- on average. This is due to the **_ownerOf()_** function, which iterates over the **_\_owners array_** until it finds a nonzero element, so gas spent here starts off proportional to the maximum mint batch size. It gradually moves to O(1) as tokens get transferred around in the collection over time.
 
 ### Dont call balanceOf() and tokenOfOwnerByIndex() on chain
 
