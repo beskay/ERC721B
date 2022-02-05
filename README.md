@@ -68,13 +68,13 @@ In the image below you can see an example layout of the **_\_owners_** array:
 
 In this example wallet **_0x1234...6789_** minted 3 tokens and wallet **_0x4567...8745_** minted 4 tokens (**_0x9876...1234_** minted an unknown number of tokens since the previous owner isnt shown).
 
-As you can see, an owner is only set for the last minted tokenId, the previous ones keep their default value. Over time (after every token got transferred at least once) all indizes will be set to a specific owner.
+As you can see, an owner is only set for the last minted tokenId, the previous ones keep their default value. Over time (after every token got transferred at least once) all indices will be set to a specific owner.
 
 ### \_checkOnERC721Received
 
 Unlike in the standard ERC721 implementation this is only called once per batch mint. Calling this several times per batch mint is a waste of gas, if the contract confirms the receival of one token, it will accept all additional tokens too. This saves us around 5k gas per additional mint, so it adds up quite a bit.
 
-Please note that this is an experimental feature, it could be that there are some contracts out there which use their onERC721Received function for additional logic, like sending the received NFTs to another wallet or something else.
+Please note that this is an experimental feature, it could be that there are some contracts out there which use the onERC721Received function for additional logic, like sending the received NFTs to another wallet or something else, I am not aware of any though.
 
 ## How to use
 
