@@ -144,7 +144,7 @@ abstract contract ERC721B {
             }
         }
 
-        revert('ERC721A: unable to determine the owner of token');
+        revert('ERC721: unable to determine the owner of token');
     }
 
     /**
