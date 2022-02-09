@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
@@ -17,7 +17,7 @@ contract ERC721BMock is ERC721B, Ownable {
      * @dev See {IERC721Metadata-tokenURI}.
      */
     function tokenURI(uint256 _tokenId) public view override returns (string memory) {
-        require(_exists(_tokenId), 'Token does not exist.');
+        if (!_exists(_tokenId)) revert OwnerQueryForNonexistentToken();
         return string(abi.encodePacked(baseURI, Strings.toString(_tokenId)));
     }
 

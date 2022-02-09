@@ -21,7 +21,7 @@ describe('ERC721B', function () {
   beforeEach(async function () {
     // Deploy the contracts
     erc721b = await ERC721B.deploy('ERC721B', 'erc721b');
-    receiver = await ERC721Receiver.deploy(RECEIVER_MAGIC_VALUE, Error.None);
+    receiver = await ERC721Receiver.deploy(RECEIVER_MAGIC_VALUE);
 
     await erc721b.deployed();
     await receiver.deployed();
@@ -44,7 +44,7 @@ describe('ERC721B', function () {
       expect(await erc721b.balanceOf(addr3.address)).to.equal('0');
 
       // reverts zero address
-      await expect(erc721b.balanceOf(ZERO_ADDRESS)).to.be.revertedWith('ERC721: balance query for the zero address');
+      await expect(erc721b.balanceOf(ZERO_ADDRESS)).to.be.revertedWith('BalanceQueryForZeroAddress');
     });
 
     it('verifies that minted tokens exist', async function () {
@@ -63,7 +63,7 @@ describe('ERC721B', function () {
       expect(await erc721b.ownerOf(1)).to.equal(addr2.address);
 
       //reverts since token not minted yet
-      await expect(erc721b.ownerOf(5)).to.be.revertedWith('ERC721: operator query for nonexistent token');
+      await expect(erc721b.ownerOf(5)).to.be.revertedWith('OwnerQueryForNonexistentToken()');
     });
 
     it('verifies correct tokenuri', async function () {
@@ -116,21 +116,17 @@ describe('ERC721B', function () {
       });
 
       it('rejects mints to the zero address', async function () {
-        await expect(erc721b['safeMint(address,uint256)'](ZERO_ADDRESS, 1)).to.be.revertedWith(
-          'ERC721: mint to the zero address'
-        );
+        await expect(erc721b['safeMint(address,uint256)'](ZERO_ADDRESS, 1)).to.be.revertedWith('MintToZeroAddress');
       });
 
       it('requires quantity to be greater than 0', async function () {
-        await expect(erc721b['safeMint(address,uint256)'](owner.address, 0)).to.be.revertedWith(
-          'ERC721: quantity must be greater than 0'
-        );
+        await expect(erc721b['safeMint(address,uint256)'](owner.address, 0)).to.be.revertedWith('MintZeroQuantity');
       });
 
       it('reverts for non-receivers', async function () {
         const nonReceiver = erc721b;
         await expect(erc721b['safeMint(address,uint256)'](nonReceiver.address, 1)).to.be.revertedWith(
-          'ERC721: transfer to non ERC721Receiver implementer'
+          'TransferToNonERC721ReceiverImplementer'
         );
       });
     });
@@ -168,11 +164,11 @@ describe('ERC721B', function () {
       });
 
       it('rejects mints to the zero address', async function () {
-        await expect(erc721b.mint(ZERO_ADDRESS, 1)).to.be.revertedWith('ERC721: mint to the zero address');
+        await expect(erc721b.mint(ZERO_ADDRESS, 1)).to.be.revertedWith('MintToZeroAddress');
       });
 
       it('requires quantity to be greater than 0', async function () {
-        await expect(erc721b.mint(owner.address, 0)).to.be.revertedWith('ERC721: quantity must be greater than 0');
+        await expect(erc721b.mint(owner.address, 0)).to.be.revertedWith('MintZeroQuantity');
       });
 
       it('does not revert for non-receivers', async function () {
@@ -233,21 +229,21 @@ describe('ERC721B', function () {
 
       it('rejects unapproved transfer', async function () {
         await expect(erc721b.connect(addr1)[transferFn](addr2.address, addr1.address, tokenId)).to.be.revertedWith(
-          'ERC721: transfer caller is not owner nor approved'
+          'TransferCallerNotOwnerNorApproved'
         );
       });
 
       it('rejects transfer from incorrect owner', async function () {
         await erc721b.connect(addr2).setApprovalForAll(addr1.address, true);
         await expect(erc721b.connect(addr1)[transferFn](addr3.address, addr1.address, tokenId)).to.be.revertedWith(
-          'ERC721: transfer from incorrect owner'
+          'TransferFromIncorrectOwner'
         );
       });
 
       it('rejects transfer to zero address', async function () {
         await erc721b.connect(addr2).setApprovalForAll(addr1.address, true);
         await expect(erc721b.connect(addr1)[transferFn](addr2.address, ZERO_ADDRESS, tokenId)).to.be.revertedWith(
-          'ERC721: transfer to the zero address'
+          'TransferToZeroAddress'
         );
       });
     };
@@ -294,18 +290,16 @@ describe('ERC721B', function () {
 
     it('rejects an invalid token owner', async function () {
       await expect(erc721b.connect(addr1).approve(addr2.address, tokenId2)).to.be.revertedWith(
-        'ERC721: approval to current owner'
+        'ApprovalToCurrentOwner'
       );
     });
 
     it('rejects an unapproved caller', async function () {
-      await expect(erc721b.approve(addr2.address, tokenId)).to.be.revertedWith(
-        'ERC721: approve caller is not owner nor approved for all'
-      );
+      await expect(erc721b.approve(addr2.address, tokenId)).to.be.revertedWith('ApprovalCallerNotOwnerNorApproved');
     });
 
     it('does not get approved for invalid tokens', async function () {
-      await expect(erc721b.getApproved(10)).to.be.revertedWith('ERC721: approved query for nonexistent token');
+      await expect(erc721b.getApproved(10)).to.be.revertedWith('ApprovalQueryForNonexistentToken');
     });
   });
 
@@ -317,9 +311,7 @@ describe('ERC721B', function () {
     });
 
     it('sets rejects approvals for non msg senders', async function () {
-      await expect(erc721b.connect(addr1).setApprovalForAll(addr1.address, true)).to.be.revertedWith(
-        'ERC721: approve to caller'
-      );
+      await expect(erc721b.connect(addr1).setApprovalForAll(addr1.address, true)).to.be.revertedWith('ApproveToCaller');
     });
   });
 
@@ -340,7 +332,7 @@ describe('ERC721B', function () {
     });
 
     it('safeMint', async function () {
-      for (let i = 1; i < 6; i++) {
+      for (let i = 1; i < 20; i++) {
         const mintTx = await erc721b['safeMint(address,uint256)'](receiver.address, i);
         const mintReceipt = await mintTx.wait();
         const gasUsed = mintReceipt.gasUsed;

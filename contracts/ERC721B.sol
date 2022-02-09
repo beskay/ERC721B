@@ -4,6 +4,25 @@ pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
 
+error ApprovalCallerNotOwnerNorApproved();
+error ApprovalQueryForNonexistentToken();
+error ApproveToCaller();
+error ApprovalToCurrentOwner();
+error BalanceQueryForZeroAddress();
+error MintedQueryForZeroAddress();
+error MintToZeroAddress();
+error MintZeroQuantity();
+error OwnerIndexOutOfBounds();
+error OwnerQueryForNonexistentToken();
+error TokenIndexOutOfBounds();
+error TransferCallerNotOwnerNorApproved();
+error TransferFromIncorrectOwner();
+error TransferToNonERC721ReceiverImplementer();
+error TransferToZeroAddress();
+error UnableDetermineTokenOwner();
+error UnableGetTokenOwnerByIndex();
+error URIQueryForNonexistentToken();
+
 /**
  * Updated, minimalist and gas efficient version of OpenZeppelins ERC721 contract.
  * Includes the Metadata and  Enumerable extension.
@@ -86,7 +105,7 @@ abstract contract ERC721B {
      * Dont call this function on chain from another smart contract, since it can become quite expensive
      */
     function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual returns (uint256 tokenId) {
-        require(index < balanceOf(owner), 'ERC721Enumerable: owner index out of bounds');
+        if (index >= balanceOf(owner)) revert OwnerIndexOutOfBounds();
 
         uint256 count;
         for (uint256 i; i < _owners.length; i++) {
@@ -96,14 +115,14 @@ abstract contract ERC721B {
             }
         }
 
-        revert('ERC721Enumerable: owner index out of bounds');
+        revert UnableGetTokenOwnerByIndex();
     }
 
     /**
      * @dev See {IERC721Enumerable-tokenByIndex}.
      */
     function tokenByIndex(uint256 index) public view virtual returns (uint256) {
-        require(index < _owners.length, 'ERC721Enumerable: global index out of bounds');
+        if (index >= totalSupply()) revert TokenIndexOutOfBounds();
         return index;
     }
 
@@ -117,7 +136,7 @@ abstract contract ERC721B {
      * as it can become quite expensive -- call this function off chain instead.
      */
     function balanceOf(address owner) public view virtual returns (uint256) {
-        require(owner != address(0), 'ERC721: balance query for the zero address');
+        if (owner == address(0)) revert BalanceQueryForZeroAddress();
 
         uint256 count;
         for (uint256 i = 0; i < _owners.length; i++) {
@@ -136,7 +155,7 @@ abstract contract ERC721B {
      * It gradually moves to O(1) as tokens get transferred around in the collection over time.
      */
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
-        require(_exists(tokenId), 'ERC721: operator query for nonexistent token');
+        if (!_exists(tokenId)) revert OwnerQueryForNonexistentToken();
 
         for (uint256 i = tokenId; ; i++) {
             if (_owners[i] != address(0)) {
@@ -144,7 +163,7 @@ abstract contract ERC721B {
             }
         }
 
-        revert('ERC721: unable to determine the owner of token');
+        revert UnableDetermineTokenOwner();
     }
 
     /**
@@ -152,12 +171,9 @@ abstract contract ERC721B {
      */
     function approve(address to, uint256 tokenId) public virtual {
         address owner = ownerOf(tokenId);
-        require(to != owner, 'ERC721: approval to current owner');
+        if (to == owner) revert ApprovalToCurrentOwner();
 
-        require(
-            msg.sender == owner || isApprovedForAll(owner, msg.sender),
-            'ERC721: approve caller is not owner nor approved for all'
-        );
+        if (msg.sender != owner && !isApprovedForAll(owner, msg.sender)) revert ApprovalCallerNotOwnerNorApproved();
 
         _tokenApprovals[tokenId] = to;
         emit Approval(owner, to, tokenId);
@@ -167,7 +183,7 @@ abstract contract ERC721B {
      * @dev See {IERC721-getApproved}.
      */
     function getApproved(uint256 tokenId) public view virtual returns (address) {
-        require(_exists(tokenId), 'ERC721: approved query for nonexistent token');
+        if (!_exists(tokenId)) revert ApprovalQueryForNonexistentToken();
 
         return _tokenApprovals[tokenId];
     }
@@ -176,7 +192,7 @@ abstract contract ERC721B {
      * @dev See {IERC721-setApprovalForAll}.
      */
     function setApprovalForAll(address operator, bool approved) public virtual {
-        require(operator != msg.sender, 'ERC721: approve to caller');
+        if (operator == msg.sender) revert ApproveToCaller();
 
         _operatorApprovals[msg.sender][operator] = approved;
         emit ApprovalForAll(msg.sender, operator, approved);
@@ -197,13 +213,14 @@ abstract contract ERC721B {
         address to,
         uint256 tokenId
     ) public virtual {
-        require(_exists(tokenId), 'ERC721: operator query for nonexistent token');
-        require(ownerOf(tokenId) == from, 'ERC721: transfer from incorrect owner');
-        require(to != address(0), 'ERC721: transfer to the zero address');
-        require(
-            msg.sender == from || msg.sender == getApproved(tokenId) || isApprovedForAll(from, msg.sender),
-            'ERC721: transfer caller is not owner nor approved'
-        );
+        if (!_exists(tokenId)) revert OwnerQueryForNonexistentToken();
+        if (ownerOf(tokenId) != from) revert TransferFromIncorrectOwner();
+        if (to == address(0)) revert TransferToZeroAddress();
+
+        bool isApprovedOrOwner = (msg.sender == from ||
+            msg.sender == getApproved(tokenId) ||
+            isApprovedForAll(from, msg.sender));
+        if (!isApprovedOrOwner) revert TransferCallerNotOwnerNorApproved();
 
         // delete token approvals from previous owner
         delete _tokenApprovals[tokenId];
@@ -230,7 +247,7 @@ abstract contract ERC721B {
     ) public virtual {
         transferFrom(from, to, id);
 
-        require(_checkOnERC721Received(from, to, id, ''), 'ERC721: transfer to non ERC721Receiver implementer');
+        if (!_checkOnERC721Received(from, to, id, '')) revert TransferToNonERC721ReceiverImplementer();
     }
 
     /**
@@ -244,7 +261,7 @@ abstract contract ERC721B {
     ) public virtual {
         transferFrom(from, to, id);
 
-        require(_checkOnERC721Received(from, to, id, data), 'ERC721: transfer to non ERC721Receiver implementer');
+        if (!_checkOnERC721Received(from, to, id, data)) revert TransferToNonERC721ReceiverImplementer();
     }
 
     /**
@@ -275,7 +292,7 @@ abstract contract ERC721B {
                 return retval == IERC721Receiver(to).onERC721Received.selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
-                    revert('ERC721: transfer to non ERC721Receiver implementer');
+                    revert TransferToNonERC721ReceiverImplementer();
                 } else {
                     assembly {
                         revert(add(32, reason), mload(reason))
@@ -302,10 +319,8 @@ abstract contract ERC721B {
     function _safeMint(address to, uint256 qty) internal virtual {
         _mint(to, qty);
 
-        require(
-            _checkOnERC721Received(address(0), to, _owners.length - 1, ''),
-            'ERC721: transfer to non ERC721Receiver implementer'
-        );
+        if (!_checkOnERC721Received(address(0), to, _owners.length - 1, ''))
+            revert TransferToNonERC721ReceiverImplementer();
     }
 
     function _safeMint(
@@ -315,15 +330,13 @@ abstract contract ERC721B {
     ) internal virtual {
         _mint(to, qty);
 
-        require(
-            _checkOnERC721Received(address(0), to, _owners.length - 1, data),
-            'ERC721: transfer to non ERC721Receiver implementer'
-        );
+        if (!_checkOnERC721Received(address(0), to, _owners.length - 1, data))
+            revert TransferToNonERC721ReceiverImplementer();
     }
 
     function _mint(address to, uint256 qty) internal virtual {
-        require(to != address(0), 'ERC721: mint to the zero address');
-        require(qty > 0, 'ERC721: quantity must be greater than 0');
+        if (to == address(0)) revert MintToZeroAddress();
+        if (qty == 0) revert MintZeroQuantity();
 
         uint256 _currentIndex = _owners.length;
 
