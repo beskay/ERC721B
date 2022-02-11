@@ -79,7 +79,7 @@ Please note that this is an experimental feature, it could be that there are som
 ## Installation
 
 ```sh
-npm install --save-dev erc721-b
+npm install --save-dev @beskay/erc721b
 ```
 
 ## How to use
@@ -89,7 +89,7 @@ Once installed simply import the contract and inherit from it.
 ```solidity
 pragma solidity ^0.8.4;
 
-import 'erc721-b/contracts/ERC721B.sol';
+import '@beskay/erc721b/contracts/ERC721B.sol';
 
 contract Example is ERC721B {
   constructor() ERC721B('Example', 'EXMP') {}
