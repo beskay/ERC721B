@@ -2,12 +2,15 @@
   "name": "erc721b",
   "version": "1.0.0",
   "description": "Updated, minimalist and gas efficient version of OpenZeppelins ERC721 contract",
-  "main": "index.js",
+  "files": [
+    "/contracts/**/*.sol",
+    "!/contracts/mocks/**/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "node": "hardhat node",
+    "test": "hardhat test",
+    "test:gas": "REPORT_GAS=true npx hardhat test"
   },
-  "author": "beskay",
-  "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.2",
@@ -22,6 +25,8 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.4.2"
   },
+  "author": "beskay",
+  "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/beskay/ERC721B.git"
