@@ -1,6 +1,6 @@
 {
   "name": "@beskay/erc721b",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Updated, minimalist and gas efficient version of OpenZeppelins ERC721 contract",
   "files": [
     "/contracts/**/*.sol",
