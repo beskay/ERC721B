@@ -35,7 +35,7 @@ uint256 internal currentIndex = 0;
 
 Becomes
 
-```
+```solidity
 // Array which maps token ID to address (index is tokenID)
 address[] internal _owners;
 ```
@@ -44,7 +44,7 @@ The balance variable is substituded with a **_balanceOf()_** function call, numb
 
 Following storage writes in the mint function of ERC721A
 
-```
+```solidity
 _addressData[to].balance += uint128(quantity);
 _addressData[to].numberMinted += uint128(quantity);
 
@@ -58,7 +58,7 @@ currentIndex = updatedIndex;
 
 are substituded with
 
-```
+```solidity
 _owners.push(to);
 ```
 
@@ -76,11 +76,32 @@ Unlike in the standard ERC721 implementation this is only called once per batch 
 
 Please note that this is an experimental feature, it could be that there are some contracts out there which use the onERC721Received function for additional logic, like sending the received NFTs to another wallet or something else, I am not aware of any though.
 
+## Installation
+
+```sh
+npm install --save-dev erc721b
+```
+
 ## How to use
 
-Just replace OpenZeppelins ERC721 contract with this one, thats it. Take a look at ERC721BMock.sol to see how to implement your mint functions.
+Once installed simply import the contract and inherit from it.
 
-You can also clone this repo and run npm install if you want to use the hardhat development environment.
+```solidity
+pragma solidity ^0.8.4;
+
+import 'erc721b/contracts/ERC721B.sol';
+
+contract Example is ERC721B {
+  constructor() ERC721B('Example', 'EXMP') {}
+
+  function mint(uint256 quantity) external payable {
+    // _safeMint's second argument now takes in a quantity, not a tokenId.
+    _safeMint(msg.sender, quantity);
+  }
+}
+```
+
+You can also take a look at [ERC721BMock.sol](https://github.com/beskay/ERC721B/blob/main/contracts/mocks/ERC721BMock.sol)
 
 ### How can i save even more gas?
 
@@ -120,5 +141,5 @@ A big influence was also [this medium article from nftchance](https://medium.com
 
 ## Contact
 
-- beskay0x - [@beskay0x](https://twitter.com/beskay0x)
+- Twitter - [@beskay0x](https://twitter.com/beskay0x)
 - Discord - [TheUnmasked](https://discord.gg/theunmasked)
