@@ -10,9 +10,9 @@ The table below shows a comparison of gas costs between a standard ERC721Enumera
 
 ## How it works
 
-### Removed OpenZeppelins Enumerable extension
+### Removed OpenZeppelins Enumerable implementation
 
-Out of the box, Open Zeppelin ERC721Enumerable comes with an inordinate amount of transfer processing that simply is not needed for the majority of projects. The method of tracking is moved into view functions, this saves an huge amount of gas when minting or transferring your tokens. For more info on that, I highly recommend reading [this medium article from nftchance](https://medium.com/coinmonks/the-cannibalization-of-nfts-by-openzeppelin-by-insanely-high-gas-prices-cd2c9a7c1e7).
+Out of the box, Open Zeppelin ERC721Enumerable comes with an inordinate amount of transfer processing that simply is not needed for the majority of projects. With ERC721B, the method of tracking is moved into view functions, this saves an huge amount of gas when minting or transferring your tokens. For more info on that, I highly recommend reading [this medium article from nftchance](https://medium.com/coinmonks/the-cannibalization-of-nfts-by-openzeppelin-by-insanely-high-gas-prices-cd2c9a7c1e7).
 
 ### Included optimizations from ERC721A
 
@@ -103,10 +103,6 @@ contract Example is ERC721B {
 
 You can also take a look at [ERC721BMock.sol](https://github.com/beskay/ERC721B/blob/main/contracts/mocks/ERC721BMock.sol)
 
-### How can i save even more gas?
-
-If you dont want to support minting to smart contracts, you can use the **_mint_** function instead of **_safeMint_**. This saves you another ~8k gas, since **_\_checkOnERC721Received_** wont be called.
-
 ## Recommendations
 
 ### Keep max batch size limit low
@@ -128,6 +124,20 @@ This is **experimental software** and is provided on an "as is" and "as availabl
 It was **not designed with user safety** in mind. You should thoroughly read the contract before using it for your own project.
 
 I **do not give any warranties** and **will not be liable for any loss** incurred through any use of this codebase.
+
+## FAQ
+
+### How does it compare to ERC721A?
+
+ERC721A is designed with user safety in mind, ERC721B is designed for maximum gas savings. Its a "lightweight" ERC721A contract, so to say. This contract is still absolutely fine and safe to use, just remember that calling balanceOf() and tokenOfOwnerByIndex() on chain should be avoided.
+
+### How can i save even more gas?
+
+If you dont want to support minting to smart contracts, you can use the **_mint_** function instead of **_safeMint_**. This saves you another ~8k gas, since **_\_checkOnERC721Received_** wont be called. Make sure that smart contracts wont be able to mint to prevent loss of NFTs, e.g. by using a whitelist.
+
+### Why is the contract marked as abstract?
+
+The contract is marked as abstract because the **tokenURI** function is not implemented.
 
 ## Acknowledgements
 
