@@ -315,6 +315,7 @@ describe('ERC721B', function () {
     });
   });
 
+  /*   
   describe('Gas analysis', async function () {
     beforeEach(async function () {
       //mint one token, since first mint is always more expensive
@@ -332,7 +333,7 @@ describe('ERC721B', function () {
     });
 
     it('safeMint', async function () {
-      for (let i = 1; i < 20; i++) {
+      for (let i = 1; i < 10; i++) {
         const mintTx = await erc721b['safeMint(address,uint256)'](receiver.address, i);
         const mintReceipt = await mintTx.wait();
         const gasUsed = mintReceipt.gasUsed;
@@ -340,5 +341,41 @@ describe('ERC721B', function () {
         console.log(`Gas used for safe minting ${i} token(s): ${gasUsed.toString()}`);
       }
     });
-  });
+  }); 
+  */
 });
+
+// Gas fees of calling balanceOf and tokenOfOwnerByIndex of a 10k NFT project on chain from another smart contract
+/* 
+describe('GasTestMock', function () {
+  before(async function () {
+    // Get the ContractFactory and Signers here.
+    ERC721B = await ethers.getContractFactory('ERC721BMock');
+    ERC721Receiver = await ethers.getContractFactory('ERC721ReceiverMock');
+    ProxyContract = await ethers.getContractFactory('GasTest');
+
+    accounts = await ethers.getSigners();
+
+    // Deploy the contracts
+    erc721b = await ERC721B.deploy('ERC721B', 'erc721b');
+    receiver = await ERC721Receiver.deploy(RECEIVER_MAGIC_VALUE);
+    await receiver.deployed();
+
+    proxy = await ProxyContract.deploy(erc721b.address);
+    await proxy.deployed();
+
+    // mint 400 tokens to 20 addresses
+    for (const account of accounts) {
+      await erc721b.mint(account.address, 20);
+    }
+  });
+
+  it('Should return balance Of', async function () {
+    balance = await proxy.testBalanceOf(accounts[10].address);
+  });
+
+  it('Should return balance Of', async function () {
+    balance = await proxy.testTokenOfOwnerByIndex(accounts[10].address, 8);
+  });
+}); 
+*/
