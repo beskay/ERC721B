@@ -111,9 +111,9 @@ abstract contract ERC721B {
         uint256 qty = _owners.length;
         // Cannot realistically overflow, since we are using uint256
         unchecked {
-            for (uint256 i; i < qty; i++) {
-                if (owner == ownerOf(i)) {
-                    if (count == index) return i;
+            for (tokenId; tokenId < qty; tokenId++) {
+                if (owner == ownerOf(tokenId)) {
+                    if (count == index) return tokenId;
                     else count++;
                 }
             }
