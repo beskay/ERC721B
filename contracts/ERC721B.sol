@@ -108,7 +108,8 @@ abstract contract ERC721B {
         if (index >= balanceOf(owner)) revert OwnerIndexOutOfBounds();
 
         uint256 count;
-        for (uint256 i; i < _owners.length; i++) {
+        uint256 qty = _owners.length;
+        for (uint256 i; i < qty; i++) {
             if (owner == ownerOf(i)) {
                 if (count == index) return i;
                 else count++;
@@ -139,7 +140,8 @@ abstract contract ERC721B {
         if (owner == address(0)) revert BalanceQueryForZeroAddress();
 
         uint256 count;
-        for (uint256 i = 0; i < _owners.length; i++) {
+        uint256 qty = _owners.length;
+        for (uint256 i = 0; i < qty; i++) {
             if (owner == ownerOf(i)) {
                 unchecked {
                     count++;
