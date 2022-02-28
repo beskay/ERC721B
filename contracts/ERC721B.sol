@@ -139,7 +139,7 @@ abstract contract ERC721B {
         if (owner == address(0)) revert BalanceQueryForZeroAddress();
 
         uint256 count;
-        for (uint256 i = 0; i < _owners.length; i++) {
+        for (uint256 i; i < _owners.length; i++) {
             if (owner == ownerOf(i)) {
                 unchecked {
                     count++;
@@ -340,7 +340,7 @@ abstract contract ERC721B {
 
         uint256 _currentIndex = _owners.length;
 
-        for (uint256 i = 0; i < qty - 1; i++) {
+        for (uint256 i; i < qty - 1; i++) {
             _owners.push();
             emit Transfer(address(0), to, _currentIndex + i);
         }
