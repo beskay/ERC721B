@@ -108,9 +108,9 @@ abstract contract ERC721B {
         if (index >= balanceOf(owner)) revert OwnerIndexOutOfBounds();
 
         uint256 count;
-        for (uint256 i; i < _owners.length; i++) {
-            if (owner == ownerOf(i)) {
-                if (count == index) return i;
+        for (tokenId; tokenId < _owners.length; tokenId++) {
+            if (owner == ownerOf(tokenId)) {
+                if (count == index) return tokenId;
                 else count++;
             }
         }
