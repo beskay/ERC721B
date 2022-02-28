@@ -109,10 +109,13 @@ abstract contract ERC721B {
 
         uint256 count;
         uint256 qty = _owners.length;
-        for (uint256 i; i < qty; i++) {
-            if (owner == ownerOf(i)) {
-                if (count == index) return i;
-                else count++;
+        // Cannot realistically overflow, since we are using uint256
+        unchecked {
+            for (uint256 i; i < qty; i++) {
+                if (owner == ownerOf(i)) {
+                    if (count == index) return i;
+                    else count++;
+                }
             }
         }
 
@@ -141,9 +144,10 @@ abstract contract ERC721B {
 
         uint256 count;
         uint256 qty = _owners.length;
-        for (uint256 i; i < qty; i++) {
-            if (owner == ownerOf(i)) {
-                unchecked {
+        // Cannot realistically overflow, since we are using uint256
+        unchecked {
+            for (uint256 i = 0; i < qty; i++) {
+                if (owner == ownerOf(i)) {
                     count++;
                 }
             }
@@ -159,9 +163,12 @@ abstract contract ERC721B {
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
         if (!_exists(tokenId)) revert OwnerQueryForNonexistentToken();
 
-        for (uint256 i = tokenId; ; i++) {
-            if (_owners[i] != address(0)) {
-                return _owners[i];
+        // Cannot realistically overflow, since we are using uint256
+        unchecked {
+            for (uint256 i = tokenId; ; i++) {
+                if (_owners[i] != address(0)) {
+                    return _owners[i];
+                }
             }
         }
 
@@ -342,9 +349,12 @@ abstract contract ERC721B {
 
         uint256 _currentIndex = _owners.length;
 
-        for (uint256 i; i < qty - 1; i++) {
-            _owners.push();
-            emit Transfer(address(0), to, _currentIndex + i);
+        // Cannot realistically overflow, since we are using uint256
+        unchecked {
+            for (uint256 i = 0; i < qty - 1; i++) {
+                _owners.push();
+                emit Transfer(address(0), to, _currentIndex + i);
+            }
         }
 
         // set last index to receiver
