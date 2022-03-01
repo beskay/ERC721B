@@ -146,7 +146,7 @@ abstract contract ERC721B {
         uint256 qty = _owners.length;
         // Cannot realistically overflow, since we are using uint256
         unchecked {
-            for (uint256 i = 0; i < qty; i++) {
+            for (uint256 i; i < qty; i++) {
                 if (owner == ownerOf(i)) {
                     count++;
                 }
@@ -165,9 +165,9 @@ abstract contract ERC721B {
 
         // Cannot realistically overflow, since we are using uint256
         unchecked {
-            for (uint256 i = tokenId; ; i++) {
-                if (_owners[i] != address(0)) {
-                    return _owners[i];
+            for (tokenId; ; tokenId++) {
+                if (_owners[tokenId] != address(0)) {
+                    return _owners[tokenId];
                 }
             }
         }
@@ -237,10 +237,8 @@ abstract contract ERC721B {
 
         // if token ID below transferred one isnt set, set it to previous owner
         // if tokenid is zero, skip this to prevent underflow
-        if (tokenId > 0) {
-            if (_owners[tokenId - 1] == address(0)) {
-                _owners[tokenId - 1] = from;
-            }
+        if (tokenId > 0 && _owners[tokenId - 1] == address(0)) {
+            _owners[tokenId - 1] = from;
         }
 
         emit Transfer(from, to, tokenId);
@@ -254,9 +252,7 @@ abstract contract ERC721B {
         address to,
         uint256 id
     ) public virtual {
-        transferFrom(from, to, id);
-
-        if (!_checkOnERC721Received(from, to, id, '')) revert TransferToNonERC721ReceiverImplementer();
+        safeTransferFrom(from, to, id, '');
     }
 
     /**
@@ -296,20 +292,16 @@ abstract contract ERC721B {
         uint256 tokenId,
         bytes memory _data
     ) private returns (bool) {
-        if (to.code.length > 0) {
-            try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, _data) returns (bytes4 retval) {
-                return retval == IERC721Receiver(to).onERC721Received.selector;
-            } catch (bytes memory reason) {
-                if (reason.length == 0) {
-                    revert TransferToNonERC721ReceiverImplementer();
-                } else {
-                    assembly {
-                        revert(add(32, reason), mload(reason))
-                    }
-                }
+        if (to.code.length == 0) return true;
+
+        try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, _data) returns (bytes4 retval) {
+            return retval == IERC721Receiver(to).onERC721Received.selector;
+        } catch (bytes memory reason) {
+            if (reason.length == 0) revert TransferToNonERC721ReceiverImplementer();
+
+            assembly {
+                revert(add(32, reason), mload(reason))
             }
-        } else {
-            return true;
         }
     }
 
@@ -326,10 +318,7 @@ abstract contract ERC721B {
      * This saves us around 5k gas per additional mint
      */
     function _safeMint(address to, uint256 qty) internal virtual {
-        _mint(to, qty);
-
-        if (!_checkOnERC721Received(address(0), to, _owners.length - 1, ''))
-            revert TransferToNonERC721ReceiverImplementer();
+        _safeMint(to, qty, '');
     }
 
     function _safeMint(
@@ -351,7 +340,7 @@ abstract contract ERC721B {
 
         // Cannot realistically overflow, since we are using uint256
         unchecked {
-            for (uint256 i = 0; i < qty - 1; i++) {
+            for (uint256 i; i < qty - 1; i++) {
                 _owners.push();
                 emit Transfer(address(0), to, _currentIndex + i);
             }
