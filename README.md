@@ -6,7 +6,7 @@ The ERC721B standard builds on top of ERC721A from Azuki, reducing the minting f
 
 The table below shows a comparison of gas costs between a standard ERC721Enumerable contract, an ERC721A contract and this ERC721B contract. The two columns on the right show the gas savings compared to an ERC721Enumerable contract and compared to an ERC721A contract.
 
-![Table of gas savings](https://i.imgur.com/A9LKIFA.png)
+![Table of gas savings](https://i.imgur.com/j7yze3Q.png)
 
 ## How it works
 
