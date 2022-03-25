@@ -315,7 +315,6 @@ describe('ERC721B', function () {
     });
   });
 
-  /*   
   describe('Gas analysis', async function () {
     beforeEach(async function () {
       //mint one token, since first mint is always more expensive
@@ -341,8 +340,47 @@ describe('ERC721B', function () {
         console.log(`Gas used for safe minting ${i} token(s): ${gasUsed.toString()}`);
       }
     });
-  }); 
-  */
+
+    it('Transfer analysis', async function () {
+      // mint 10 tokens
+      await erc721b['safeMint(address,uint256)'](addr2.address, 10);
+
+      // transfer the same token twice
+      const firstTransfer = await erc721b.connect(addr2).transferFrom(addr2.address, addr1.address, 1);
+      const secondTransfer = await erc721b.connect(addr1).transferFrom(addr1.address, addr2.address, 1);
+
+      const firstReceipt = await firstTransfer.wait();
+      const secondReceipt = await secondTransfer.wait();
+
+      const firstTransferFee = firstReceipt.gasUsed;
+      const secondTransferFee = secondReceipt.gasUsed;
+
+      console.log(`Gas used for first transfer: ${firstTransferFee.toString()}`);
+      console.log(`Gas used for second transfer: ${secondTransferFee.toString()}`);
+    });
+
+    it('safeTransfer analysis', async function () {
+      // mint 10 tokens
+      await erc721b['safeMint(address,uint256)'](addr2.address, 10);
+
+      // transfer the same token twice
+      const firstTransfer = await erc721b
+        .connect(addr2)
+        ['safeTransferFrom(address,address,uint256)'](addr2.address, addr1.address, 1);
+      const secondTransfer = await erc721b
+        .connect(addr1)
+        ['safeTransferFrom(address,address,uint256)'](addr1.address, addr2.address, 1);
+
+      const firstReceipt = await firstTransfer.wait();
+      const secondReceipt = await secondTransfer.wait();
+
+      const firstTransferFee = firstReceipt.gasUsed;
+      const secondTransferFee = secondReceipt.gasUsed;
+
+      console.log(`Gas used for first safeTransfer: ${firstTransferFee.toString()}`);
+      console.log(`Gas used for second safeTransfer: ${secondTransferFee.toString()}`);
+    });
+  });
 });
 
 // Gas fees of calling balanceOf and tokenOfOwnerByIndex of a 10k NFT project on chain from another smart contract
