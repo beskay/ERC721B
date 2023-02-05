@@ -117,14 +117,6 @@ Because of this, calling these functions from another smart contract can become 
 
 Fortunately, calling those two functions from another smart contract is almost never needed and if it is, you can probably substitute the call off chain: Usually you call balanceOf() to check if someone holds NFTs from a specific project in order to whitelist them (or something similiar). Instead of calling **_balanceOf()_** from your smart contract, you can check the tokenIds a wallet holds by calling **_tokenOfOwnerByIndex()_** off chain, and then prove it on chain by calling **_ownerOf(tokenId)_**.
 
-## Safety
-
-This is **experimental software** and is provided on an "as is" and "as available" basis. This contract is not audited yet.
-
-It was **not designed with user safety** in mind. You should thoroughly read the contract before using it for your own project.
-
-I **do not give any warranties** and **will not be liable for any loss** incurred through any use of this codebase.
-
 ## FAQ
 
 ### How does it compare to ERC721A?
@@ -139,6 +131,14 @@ If you dont want to support minting to smart contracts, you can use the **_mint_
 
 The contract is marked as abstract because the **tokenURI** function is not implemented.
 
+## Safety
+
+This is **experimental software** and is provided on an "as is" and "as available" basis. This contract is not audited yet.
+
+It was **not designed with user safety** in mind. You should thoroughly read the contract before using it for your own project.
+
+I **do not give any warranties** and **will not be liable for any loss** incurred through any use of this codebase.
+
 ## Acknowledgements
 
 These contracts were inspired by or directly modified from many sources, primarily:
@@ -152,4 +152,3 @@ A big influence was also [this medium article from nftchance](https://medium.com
 ## Contact
 
 - Twitter - [@beskay0x](https://twitter.com/beskay0x)
-- Discord - [TheUnmasked](https://discord.gg/theunmasked)
