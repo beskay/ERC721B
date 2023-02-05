@@ -24,11 +24,11 @@ error UnableGetTokenOwnerByIndex();
 error URIQueryForNonexistentToken();
 
 /**
- * Updated, minimalist and gas efficient version of OpenZeppelins ERC721 contract.
- * Includes the Metadata and  Enumerable extension.
+ * @notice Updated, minimalist and gas efficient version of OpenZeppelins ERC721 contract.
+ *         Includes the Metadata and Enumerable extension.
  *
- * Assumes serials are sequentially minted starting at 0 (e.g. 0, 1, 2, 3..).
- * Does not support burning tokens
+ * @dev Token IDs are minted  in sequential order starting at 0 (e.g. 0, 1, 2, ...).
+ *      Does not support burning tokens.
  *
  * @author beskay0x
  * Credits: chiru-labs, solmate, transmissions11, nftchance, squeebo_nft and others
@@ -102,7 +102,8 @@ abstract contract ERC721B {
 
     /**
      * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
-     * Dont call this function on chain from another smart contract, since it can become quite expensive
+     * It is not recommended to call this function on chain from another smart contract,
+     * as it can become quite expensive for larger collections.
      */
     function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual returns (uint256 tokenId) {
         if (index >= balanceOf(owner)) revert OwnerIndexOutOfBounds();
@@ -135,9 +136,9 @@ abstract contract ERC721B {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev Iterates through _owners array, returns balance of address
-     * It is not recommended to call this function from another smart contract
-     * as it can become quite expensive -- call this function off chain instead.
+     * @dev Returns the number of tokens in `owner`'s account.
+     *      Iterates through _owners array -- it is not recommended to call this function
+     *      from another contract, as it can become quite expensive for larger collections.
      */
     function balanceOf(address owner) public view virtual returns (uint256) {
         if (owner == address(0)) revert BalanceQueryForZeroAddress();
@@ -157,8 +158,8 @@ abstract contract ERC721B {
 
     /**
      * @dev See {IERC721-ownerOf}.
-     * Gas spent here starts off proportional to the maximum mint batch size.
-     * It gradually moves to O(1) as tokens get transferred around in the collection over time.
+     *      Gas spent here starts off proportional to the maximum mint batch size.
+     *      It gradually moves to O(1) as tokens get transferred around in the collection over time.
      */
     function ownerOf(uint256 tokenId) public view virtual returns (address) {
         if (!_exists(tokenId)) revert OwnerQueryForNonexistentToken();
@@ -278,7 +279,7 @@ abstract contract ERC721B {
 
     /**
      * @dev Internal function to invoke {IERC721Receiver-onERC721Received} on a target address.
-     * The call is not executed if the target address is not a contract.
+     *      The call is not executed if the target address is not a contract.
      *
      * @param from address representing the previous owner of the given token ID
      * @param to target address that will receive the tokens
@@ -310,17 +311,22 @@ abstract contract ERC721B {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev check if contract confirms token transfer, if not - reverts
-     * unlike the standard ERC721 implementation this is only called once per mint,
-     * no matter how many tokens get minted, since it is useless to check this
-     * requirement several times -- if the contract confirms one token,
-     * it will confirm all additional ones too.
-     * This saves us around 5k gas per additional mint
+     * @dev Safely mints `qty` tokens and transfers them to `to`.
+     *
+     *      If `to` refers to a smart contract, it must implement
+     *      {IERC721Receiver-onERC721Received}
+     *
+     *      Unlike in the standard ERC721 implementation {IERC721Receiver-onERC721Received}
+     *      is only called once. If the receiving contract confirms the transfer of one token,
+     *      all additional tokens are automatically confirmed too.
      */
     function _safeMint(address to, uint256 qty) internal virtual {
         _safeMint(to, qty, '');
     }
 
+    /**
+     * @dev Equivalent to {safeMint(to, qty)}, but accepts an additional data argument.
+     */
     function _safeMint(
         address to,
         uint256 qty,
@@ -332,6 +338,10 @@ abstract contract ERC721B {
             revert TransferToNonERC721ReceiverImplementer();
     }
 
+    /**
+     * @dev Mints `qty` tokens and transfers them to `to`.
+     *      Emits a {Transfer} event for each mint.
+     */
     function _mint(address to, uint256 qty) internal virtual {
         if (to == address(0)) revert MintToZeroAddress();
         if (qty == 0) revert MintZeroQuantity();
